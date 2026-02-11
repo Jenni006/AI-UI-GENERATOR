@@ -1,7 +1,15 @@
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+
 export default function Home() {
   return (
     <div>
-      <h1>AI UI Generator</h1>
+      <Card>
+        <h2>Test UI</h2>
+        <Input placeholder="Enter name" />
+        <Button>Submit</Button>
+      </Card>
     </div>
   );
 }
