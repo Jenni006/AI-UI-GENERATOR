@@ -1,15 +1,21 @@
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
+"use client";
+
+import { renderNode } from "@/lib/renderer";
 
 export default function Home() {
-  return (
-    <div>
-      <Card>
-        <h2>Test UI</h2>
-        <Input placeholder="Enter name" />
-        <Button>Submit</Button>
-      </Card>
-    </div>
-  );
+  const sampleJSON = {
+    type: "Card",
+    children: [
+      {
+        type: "Input",
+        placeholder: "Enter name",
+      },
+      {
+        type: "Button",
+        content: "Submit",
+      },
+    ],
+  };
+
+  return <div>{renderNode(sampleJSON)}</div>;
 }
