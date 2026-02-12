@@ -34,10 +34,11 @@ export default function Renderer({ schema }: RendererProps) {
       return <div key={index}>Invalid component</div>;
     }
 
-    const { children, ...rest } = component.props || {};
+    const props = component.props || {};
+    const children = component.children || [];
 
     return (
-      <Component key={index} {...rest}>
+      <Component key={index} {...props}>
         {Array.isArray(children) &&
           children.map((child: any, i: number) =>
             renderComponent(child, i)

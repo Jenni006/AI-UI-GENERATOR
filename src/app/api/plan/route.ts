@@ -1,124 +1,153 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { prompt } = await req.json();
 
     if (!prompt) {
-      return NextResponse.json(
-        { error: "Prompt is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Prompt required" }, { status: 400 });
     }
 
-    const systemPrompt = `
-You are a UI planning agent.
+//PLANNER
 
-Your job:
-Convert user intent into STRICT JSON.
+    const plannerPrompt = `
+You are a UI Planner AI.
 
 Rules:
 - Use ONLY these components:
-  Button
-  Card
-  Input
-  Table
-  Modal
-  Sidebar
-  Navbar
-  Chart
+Button, Card, Input, Table, Modal, Sidebar, Navbar, Chart
+- Choose layout: vertical or horizontal
+- Output STRICT JSON
+- No explanations
+- No extra text
 
-- DO NOT invent new components
-- DO NOT add styling
-- DO NOT explain anything
-- Return ONLY valid JSON
-- No markdown
-- No backticks
+IMPORTANT PROP RULES:
+- Button must use: { "label": "Button Text" }
+- Input must use: { "placeholder": "Text" }
 
-JSON structure format:
+Return format:
 
 {
-  "layout": "vertical" | "horizontal",
+  "layout": "vertical | horizontal",
   "components": [
     {
       "type": "ComponentName",
-      "props": {
-        "title": "optional",
-        "label": "optional",
-        "placeholder": "optional",
-        "children": []
-      }
+      "props": {},
+      "children": []
     }
   ]
 }
+
+User request:
+${prompt}
 `;
 
-    const completion = await groq.chat.completions.create({
+    const plannerResponse = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
+      temperature: 0,
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: prompt },
+        { role: "system", content: plannerPrompt }
       ],
-      temperature: 0, // IMPORTANT for determinism
     });
 
-    const content = completion.choices[0]?.message?.content;
+    const rawPlan = plannerResponse.choices[0]?.message?.content;
 
-    if (!content) {
-      return NextResponse.json(
-        { error: "Empty response from LLM" },
-        { status: 500 }
-      );
+    if (!rawPlan) {
+      return NextResponse.json({ error: "Planner failed" }, { status: 500 });
     }
 
-    // Try parsing JSON safely
-    let parsed;
+    const cleaned = rawPlan.replace(/```json|```/g, "").trim();
+    const plan = JSON.parse(cleaned);
 
-    try {
-      parsed = JSON.parse(content);
-    } catch (err) {
-      return NextResponse.json(
-        { error: "Invalid JSON returned from LLM", raw: content },
-        { status: 500 }
-      );
-    }
+//GENERATOR
 
-    // Basic component whitelist validation
-    const allowedComponents = [
-      "Button",
-      "Card",
-      "Input",
-      "Table",
-      "Modal",
-      "Sidebar",
-      "Navbar",
-      "Chart",
-    ];
+    const generatorPrompt = `
+You are a React UI Code Generator.
 
-    const isValid = parsed.components?.every((comp: any) =>
-      allowedComponents.includes(comp.type)
-    );
+Rules:
+- Use ONLY these components:
+Button, Card, Input, Table, Modal, Sidebar, Navbar, Chart
+- Do NOT create new components
+- Do NOT use inline styles
+- Do NOT use Tailwind
+- Output ONLY valid React JSX
+- No explanations
 
-    if (!isValid) {
-      return NextResponse.json(
-        { error: "Invalid component detected" },
-        { status: 400 }
-      );
-    }
+Given this UI schema:
 
-    return NextResponse.json(parsed);
+${JSON.stringify(plan, null, 2)}
+
+Generate React JSX that renders this UI.
+`;
+
+    const generatorResponse = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      temperature: 0,
+      messages: [
+        { role: "system", content: generatorPrompt }
+      ],
+    });
+
+    const generatedCode =
+      generatorResponse.choices[0]?.message?.content || "";
+
+//EXPLAINER
+
+    const explainerPrompt = `
+You are a UI Design Explainer.
+
+User Request:
+${prompt}
+
+Generated Schema:
+${JSON.stringify(plan, null, 2)}
+
+Rules:
+- Return plain text only
+- Do NOT use markdown
+- Do NOT use *, **, _, # or any formatting symbols
+- Do NOT use bullet points
+- No headings
+- No code
+- Keep it short and clear
+- Maximum 6 sentences
+
+Explain:
+- Why this layout was selected
+- Why each component was used
+- Keep it short and clear
+- No code
+`;
+
+    const explainerResponse = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      temperature: 0,
+      messages: [
+        { role: "system", content: explainerPrompt }
+      ],
+    });
+
+    const explanation =
+      explainerResponse.choices[0]?.message?.content || "";
+
+//RETURN ALL
+
+    return NextResponse.json({
+      schema: plan,
+      code: generatedCode,
+      explanation: explanation,
+    });
+
   } catch (error: any) {
-    console.error("Planner Error:", error);
-
+    console.error(error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error.message },
+      { error: "Something went wrong" },
       { status: 500 }
     );
   }
 }
-
