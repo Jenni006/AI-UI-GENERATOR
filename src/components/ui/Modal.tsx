@@ -1,22 +1,22 @@
 "use client";
 
 interface ModalProps {
-  title?: string;
   children?: React.ReactNode;
 }
 
-export default function Modal({ title, children }: ModalProps) {
+export default function Modal({ children }: ModalProps) {
   return (
     <div
       style={{
-        border: "1px solid #aaa",
+        backgroundColor: "#2a2a2a", 
+        border: "1px solid #444",
         padding: "16px",
         borderRadius: "8px",
-        backgroundColor: "#f9f9f9",
+        width: "300px",
         marginTop: "16px",
+        boxShadow: "0 4px 8px rgba(0,0,0,0.6)",
       }}
     >
-      {title && <h3>{title}</h3>}
       {children}
     </div>
   );
