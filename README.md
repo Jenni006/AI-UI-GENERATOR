@@ -108,4 +108,120 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/Jenni006/AI-UI-GENERATOR.git
+```
+Navigate to the project directory:
 
+```bash
+cd AI-UI-GENERATOR
+```
+Install dependencies:
+
+```bash
+npm install
+```
+
+---
+
+## Running Locally
+
+Start the development server:
+
+```bash
+npm run dev
+```
+The application will run at:
+
+```bash
+http://localhost:3000
+```
+
+---
+
+## Folder Structure
+
+```bash
+AI-UI-GENERATOR/
+│
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── plan/route.ts
+│   │   └── page.tsx
+│   │
+│   ├── components/
+│   │   └── Renderer.tsx
+│
+├── public/
+├── package.json
+└── README.md
+```
+
+---
+
+## API Design
+
+The API follows a structured request-response model.
+
+### POST /api/plan
+
+### Request Body
+
+```json
+{
+  "prompt": "Create a login card with sign up option"
+}
+```
+
+### Response
+
+```json
+{
+  "plan": { ...validated schema... },
+  "explanation": "Plain text explanation",
+  "versions": [ ...previous generations... ]
+}
+```
+
+The API includes:
+
+- Streaming support
+- Safe JSON extraction
+- Schema validation
+- Structured error fallback
+
+---
+
+## Error Handling Strategy
+
+- Removes markdown and code fences before parsing
+- Extracts JSON safely from mixed AI responses
+- Validates schema before rendering
+- Returns controlled fallback responses
+- Prevents runtime crashes from malformed AI output
+- Logs parsing and validation failures for debugging
+
+---
+
+## Known Limitations
+
+- Highly abstract prompts may produce inconsistent structure
+- Complex animations and interactions are limited
+- Output depends on AI response quality
+- Does not yet support full UI framework generation (only supported components)
+
+---
+
+## Future Improvements
+
+- Enhanced diff view between versions
+- Expanded component library
+- Support for additional UI frameworks
+- Improved static analysis of AI output
+- Persistent database-backed version storage
+- Multi-user collaboration support
+
+---
+
+## License
+
+This project is licensed under the MIT License.
