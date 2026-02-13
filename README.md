@@ -109,8 +109,3 @@ Clone the repository:
 ```bash
 git clone https://github.com/Jenni006/AI-UI-GENERATOR.git
 
-
-## License
-This project is licensed under the MIT License.
-
----
