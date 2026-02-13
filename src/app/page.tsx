@@ -100,13 +100,17 @@ export default function Home() {
   };
 
   const renderDiff = () => {
-    if (history.length === 0 || !schema) return null;
+    if (!schema || history.length === 0) return null;
 
-    const prevStr = JSON.stringify(
-      history[history.length - 1].schema,
-      null,
-      2
-    );
+    const baseIndex =
+      selectedVersion !== null
+        ? selectedVersion
+        : history.length - 1;
+
+    const prevSchema = history[baseIndex]?.schema;
+    if (!prevSchema) return null;
+
+    const prevStr = JSON.stringify(prevSchema, null, 2);
     const currStr = JSON.stringify(schema, null, 2);
 
     const prevLines = prevStr.split("\n");
@@ -117,7 +121,9 @@ export default function Home() {
         key={i}
         style={{
           backgroundColor:
-            line !== prevLines[i] ? "rgba(255,255,0,0.2)" : "transparent",
+            line !== prevLines[i]
+              ? "rgba(255,255,0,0.2)"
+              : "transparent",
           fontFamily: "monospace",
           whiteSpace: "pre",
         }}
@@ -259,7 +265,7 @@ export default function Home() {
           {/* Diff View */}
           {history.length > 0 && (
             <div style={{ flex: 1 }}>
-              <h3>Diff</h3>
+              <h3>Difference</h3>
               <div
                 style={{
                   backgroundColor: "#111",
