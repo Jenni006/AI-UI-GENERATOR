@@ -77,17 +77,18 @@ export default function Home() {
   };
 
   const rollback = () => {
-    if (!history.length) return;
+    if (history.length < 2) return; 
 
-    const prev = history[history.length - 1];
+    const prev = history[history.length - 2]; 
 
     setPrompt(prev.prompt);
     setSchema(prev.schema);
     setGeneratedCode(JSON.stringify(prev.schema, null, 2));
     setExplanation(prev.explanation);
 
-    setHistory((prevArr) => prevArr.slice(0, -1));
+    setHistory((prevArr) => prevArr.slice(0, -1)); // remove last version
   };
+
 
   const replayHistory = (index: number) => {
     const item = history[index];
