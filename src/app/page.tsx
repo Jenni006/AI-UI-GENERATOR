@@ -100,38 +100,44 @@ export default function Home() {
   };
 
   const renderDiff = () => {
-    if (!schema || history.length === 0) return null;
 
-    const baseIndex =
-      selectedVersion !== null
-        ? selectedVersion
-        : history.length - 1;
+    if (history.length < 2) {
+      return (
+        <div style={{ color: "#888", fontStyle: "italic" }}>
+          No previous version to compare.
+        </div>
+      );
+    }
 
-    const prevSchema = history[baseIndex]?.schema;
-    if (!prevSchema) return null;
+    const current = history[history.length - 1].schema;
+    const previous = history[history.length - 2].schema;
 
-    const prevStr = JSON.stringify(prevSchema, null, 2);
-    const currStr = JSON.stringify(schema, null, 2);
+    const prevStr = JSON.stringify(previous, null, 2);
+    const currStr = JSON.stringify(current, null, 2);
 
     const prevLines = prevStr.split("\n");
     const currLines = currStr.split("\n");
 
-    return currLines.map((line, i) => (
-      <div
-        key={i}
-        style={{
-          backgroundColor:
-            line !== prevLines[i]
+    return currLines.map((line, i) => {
+      const changed = line !== prevLines[i];
+
+      return (
+        <div
+          key={i}
+          style={{
+            backgroundColor: changed
               ? "rgba(255,255,0,0.2)"
               : "transparent",
-          fontFamily: "monospace",
-          whiteSpace: "pre",
-        }}
-      >
-        {line}
-      </div>
-    ));
+            fontFamily: "monospace",
+            whiteSpace: "pre",
+          }}
+        >
+          {line}
+        </div>
+      );
+    });
   };
+
 
   return (
     <div
